@@ -1,6 +1,7 @@
 // Advent of Code 2022 - Day 2
 // Calculate the score of a Rock Paper Scissors game
 
+#[allow(clippy::identity_op)]
 fn score(opponent: char, player: char) -> u32 {
     match (opponent, player) {
         ('A', 'X') => 1 + 3,
@@ -17,7 +18,19 @@ fn score(opponent: char, player: char) -> u32 {
 }
 
 fn main() {
-    println!("Hello, world!");
+    // Read the input data from `data/input.txt`, and pass the plays to the `score` function
+    // to accumulate the total score.
+    let total_score = std::fs::read_to_string("data/input.txt")
+        .unwrap()
+        .lines()
+        .map(|line| {
+            let mut iter = line.split_whitespace();
+            let opponent = iter.next().unwrap().chars().next().unwrap();
+            let player = iter.next().unwrap().chars().next().unwrap();
+            score(opponent, player)
+        })
+        .sum::<u32>();
+    println!("{}", total_score);
 }
 
 #[cfg(test)]
