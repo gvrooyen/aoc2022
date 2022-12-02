@@ -15,11 +15,9 @@ fn argmax_calories<R: BufRead>(reader: &mut R, top_n: usize) -> i32 {
         // sum is larger than the previous maximum, save it if it is, and reset the sum.
         if line.as_ref().unwrap().is_empty() {
             if sum > min {
-                println!("Had: {:?}, adding {}", max, sum);
                 max[min_idx] = sum;
                 min_idx = max.iter().enumerate().min_by_key(|(_, &v)| v).unwrap().0;
                 min = max[min_idx];
-                println!("Now: {:?}", max);
             }
             sum = 0;
         } else {
