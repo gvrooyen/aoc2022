@@ -2,7 +2,7 @@
 // Calculate the score of a Rock Paper Scissors game
 
 #[allow(clippy::identity_op)]
-fn score(opponent: char, player: char) -> u32 {
+fn score1(opponent: char, player: char) -> u32 {
     match (opponent, player) {
         ('A', 'X') => 1 + 3,
         ('A', 'Y') => 2 + 6,
@@ -17,6 +17,21 @@ fn score(opponent: char, player: char) -> u32 {
     }
 }
 
+fn score2(opponent: char, player: char) -> u32 {
+    match (opponent, player) {
+        ('A', 'X') => 0 + 3,
+        ('A', 'Y') => 3 + 1,
+        ('A', 'Z') => 6 + 2,
+        ('B', 'X') => 0 + 1,
+        ('B', 'Y') => 3 + 2,
+        ('B', 'Z') => 6 + 3,
+        ('C', 'X') => 0 + 2,
+        ('C', 'Y') => 3 + 3,
+        ('C', 'Z') => 6 + 1,
+        _ => 0,
+    }
+}
+
 fn main() {
     // Read the input data from `data/input.txt`, and pass the plays to the `score` function
     // to accumulate the total score.
@@ -27,7 +42,7 @@ fn main() {
             let mut iter = line.split_whitespace();
             let opponent = iter.next().unwrap().chars().next().unwrap();
             let player = iter.next().unwrap().chars().next().unwrap();
-            score(opponent, player)
+            score2(opponent, player)
         })
         .sum::<u32>();
     println!("{}", total_score);
@@ -39,12 +54,23 @@ mod tests {
 
     #[test]
     fn test_score() {
-        let r1 = score('A', 'Y');
+        let r1 = score1('A', 'Y');
         assert_eq!(r1, 8);
-        let r2 = score('B', 'X');
+        let r2 = score1('B', 'X');
         assert_eq!(r2, 1);
-        let r3 = score('C', 'Z');
+        let r3 = score1('C', 'Z');
         assert_eq!(r3, 6);
         assert_eq!(r1 + r2 + r3, 15);
+    }
+
+    #[test]
+    fn test_score2() {
+        let r1 = score2('A', 'Y');
+        assert_eq!(r1, 4);
+        let r2 = score2('B', 'X');
+        assert_eq!(r2, 1);
+        let r3 = score2('C', 'Z');
+        assert_eq!(r3, 7);
+        assert_eq!(r1 + r2 + r3, 12);
     }
 }
