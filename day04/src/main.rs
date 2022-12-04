@@ -1,8 +1,10 @@
 // Advent of Code 2022 - Day 4
 // Find overlapping work assignments.
 
+type Assignment = ((u32, u32), (u32, u32));
+
 // Find the assignment indices where one range in the pair is completely contained in the other.
-fn find_subsets(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
+fn find_subsets(assignments: &[Assignment]) -> Vec<usize> {
     let mut subsets = Vec::new();
     for (i, ((a, b), (c, d))) in assignments.iter().enumerate() {
         if ((a >= c) && (b <= d)) || ((c >= a) && (d <= b)) {
@@ -13,7 +15,7 @@ fn find_subsets(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
 }
 
 // Find the assignment indices where the ranges overlap at all.
-fn find_overlaps(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
+fn find_overlaps(assignments: &[Assignment]) -> Vec<usize> {
     let mut overlaps = Vec::new();
     for (i, ((a, b), (c, d))) in assignments.iter().enumerate() {
         if ((a >= c) && (a <= d))
@@ -28,7 +30,7 @@ fn find_overlaps(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
 }
 
 // Parse a string of the form "10-19,3-11" into a tuple of the form ((10, 19), (3, 11)).
-fn parse_assignment(assignment: &str) -> ((u32, u32), (u32, u32)) {
+fn parse_assignment(assignment: &str) -> Assignment {
     let assignment: Vec<&str> = assignment.split(',').collect();
     let first: Vec<&str> = assignment[0].split('-').collect();
     let second: Vec<&str> = assignment[1].split('-').collect();
@@ -43,7 +45,7 @@ fn main() {
     let assignments = std::fs::read_to_string("data/input.txt")
         .expect("Failed to read input file")
         .lines()
-        .map(|line| parse_assignment(line))
+        .map(parse_assignment)
         .collect::<Vec<((u32, u32), (u32, u32))>>();
     let subsets = find_subsets(&assignments);
     println!("Found {} subsets", subsets.len());
@@ -55,7 +57,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const TEST_INPUT: &[((u32, u32), (u32, u32))] = &[
+    const TEST_INPUT: &[Assignment] = &[
         ((2, 4), (6, 8)),
         ((2, 3), (4, 5)),
         ((5, 7), (7, 9)),
