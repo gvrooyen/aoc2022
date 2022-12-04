@@ -1,8 +1,8 @@
-// Advent of Code 2022 - Day 3
+// Advent of Code 2022 - Day 4
 // Find overlapping work assignments.
 
 // Find the assignment indices where one range in the pair is completely contained in the other.
-fn find_subsets(assignments: Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
+fn find_subsets(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
     let mut subsets = Vec::new();
     for (i, ((a, b), (c, d))) in assignments.iter().enumerate() {
         if ((a >= c) && (b <= d)) || ((c >= a) && (d <= b)) {
@@ -10,6 +10,21 @@ fn find_subsets(assignments: Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
         }
     }
     subsets
+}
+
+// Find the assignment indices where the ranges overlap at all.
+fn find_overlaps(assignments: &Vec<((u32, u32), (u32, u32))>) -> Vec<usize> {
+    let mut overlaps = Vec::new();
+    for (i, ((a, b), (c, d))) in assignments.iter().enumerate() {
+        if ((a >= c) && (a <= d))
+            || ((b >= c) && (b <= d))
+            || ((c >= a) && (c <= b))
+            || ((d >= a) && (d <= b))
+        {
+            overlaps.push(i);
+        }
+    }
+    overlaps
 }
 
 // Parse a string of the form "10-19,3-11" into a tuple of the form ((10, 19), (3, 11)).
@@ -30,8 +45,10 @@ fn main() {
         .lines()
         .map(|line| parse_assignment(line))
         .collect::<Vec<((u32, u32), (u32, u32))>>();
-    let subsets = find_subsets(assignments);
+    let subsets = find_subsets(&assignments);
     println!("Found {} subsets", subsets.len());
+    let overlaps = find_overlaps(&assignments);
+    println!("Found {} overlaps", overlaps.len());
 }
 
 #[cfg(test)]
@@ -49,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_find_subsets() {
-        assert_eq!(find_subsets(TEST_INPUT.to_vec()), vec![3, 4]);
+        assert_eq!(find_subsets(&TEST_INPUT.to_vec()), vec![3, 4]);
     }
 
     #[test]
