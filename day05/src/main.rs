@@ -1,7 +1,6 @@
 // Advent of Code 2022 - Day 5
 // Shuffling crates
 
-use std::collections::VecDeque;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -49,10 +48,15 @@ fn parse_input(filename: &str) -> (Stack, Vec<Move>) {
                 }
             }
         } else {
+            // The second part of the file describe moves in the form "move 3 from 7 to 9". Here we
+            // read each line, pack it into a `Move` struct, and append it to the `moves` vector.
+            let mut words = line.split_whitespace();
+            let qty = words.nth(1).unwrap().parse().unwrap();
+            let src = words.nth(1).unwrap().parse().unwrap();
+            let dst = words.nth(1).unwrap().parse().unwrap();
+            moves.push(Move { qty, src, dst });
         }
     }
-
-    println!("{:?}", raw_stack);
 
     // This will eventually store the initial state of the stacks.
     let mut stack: Stack = vec![Vec::new(); num_stacks];
@@ -60,15 +64,13 @@ fn parse_input(filename: &str) -> (Stack, Vec<Move>) {
     // Convert the `raw_stack` vector into a `Stack` container. This is done by iterating over
     // `raw_stack` from next-to-last to first, and pushing each non-space character to the
     // corresponding `stack` vector.
-    for i in (0..num_stacks - 1).rev() {
+    for i in (0..raw_stack.len() - 1).rev() {
         for (j, c) in raw_stack[i].iter().enumerate() {
             if *c != ' ' {
                 stack[j].push(*c);
             }
         }
     }
-
-    println!("{:?}", stack);
 
     (stack, moves)
 }
@@ -86,11 +88,19 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let (stacks, moves) = parse_input("data/test.txt");
-        assert_eq!(stacks.len(), 3);
-        assert_eq!(stacks[0].len(), 2);
-        assert_eq!(stacks[1].len(), 3);
-        assert_eq!(stacks[2].len(), 1);
+        let (stack, moves) = parse_input("data/test.txt");
+        assert_eq!(stack.len(), 3);
+        assert_eq!(stack[0].len(), 2);
+        assert_eq!(stack[1].len(), 3);
+        assert_eq!(stack[2].len(), 1);
         assert_eq!(moves.len(), 4);
+
+        assert_eq!(stack[0][0], 'Z');
+        assert_eq!(stack[1][2], 'D');
+        assert_eq!(stack[2][0], 'P');
+
+        assert_eq!(moves[0].qty, 1);
+        assert_eq!(moves[1].src, 1);
+        assert_eq!(moves[3].dst, 2);
     }
 }
