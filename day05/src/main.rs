@@ -80,8 +80,8 @@ fn parse_input(filename: &str) -> (Stack, Vec<Move>) {
 }
 
 // Perform the shuffling process described by the `moves` vector, and return the final state of the
-// stacks.
-fn shuffle(stack: &mut Stack, moves: &[Move]) {
+// stacks, as performed by the CrateMover 9000.
+fn shuffle_9000(stack: &mut Stack, moves: &[Move]) {
     for m in moves {
         let Move { qty, src, dst } = *m;
         for _ in 0..qty {
@@ -91,9 +91,32 @@ fn shuffle(stack: &mut Stack, moves: &[Move]) {
     }
 }
 
+// An alternative shuffling process, as performed by the CrateMover 9001.
+fn shuffle_9001(stack: &mut Stack, moves: &[Move]) {
+    for m in moves {
+        let Move { qty, src, dst } = *m;
+        let mut tmp = Vec::new();
+        for _ in 0..qty {
+            let c = stack[src].pop().unwrap();
+            tmp.push(c);
+        }
+        for _ in 0..qty {
+            let c = tmp.pop().unwrap();
+            stack[dst].push(c);
+        }
+    }
+}
+
 fn main() {
     let (mut stack, moves) = parse_input("data/input.txt");
-    shuffle(&mut stack, &moves);
+    shuffle_9000(&mut stack, &moves);
+    for s in stack {
+        print!("{}", s.last().unwrap());
+    }
+    println!();
+
+    let (mut stack, moves) = parse_input("data/input.txt");
+    shuffle_9001(&mut stack, &moves);
     for s in stack {
         print!("{}", s.last().unwrap());
     }
@@ -124,11 +147,20 @@ mod tests {
     }
 
     #[test]
-    fn test_shuffle() {
+    fn test_shuffle_9000() {
         let (mut stack, moves) = parse_input("data/test.txt");
-        shuffle(&mut stack, &moves);
+        shuffle_9000(&mut stack, &moves);
         assert_eq!(stack[0][0], 'C');
         assert_eq!(stack[1][0], 'M');
         assert_eq!(stack[2][3], 'Z');
+    }
+
+    #[test]
+    fn test_shuffle_9001() {
+        let (mut stack, moves) = parse_input("data/test.txt");
+        shuffle_9001(&mut stack, &moves);
+        assert_eq!(stack[0][0], 'M');
+        assert_eq!(stack[1][0], 'C');
+        assert_eq!(stack[2][3], 'D');
     }
 }
