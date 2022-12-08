@@ -52,9 +52,13 @@ fn parse_input(filename: &str) -> (Stack, Vec<Move>) {
             // read each line, pack it into a `Move` struct, and append it to the `moves` vector.
             let mut words = line.split_whitespace();
             let qty = words.nth(1).unwrap().parse().unwrap();
-            let src = words.nth(1).unwrap().parse().unwrap();
-            let dst = words.nth(1).unwrap().parse().unwrap();
-            moves.push(Move { qty, src, dst });
+            let src: usize = words.nth(1).unwrap().parse().unwrap();
+            let dst: usize = words.nth(1).unwrap().parse().unwrap();
+            moves.push(Move {
+                qty,
+                src: src - 1,
+                dst: dst - 1,
+            });
         }
     }
 
@@ -75,10 +79,25 @@ fn parse_input(filename: &str) -> (Stack, Vec<Move>) {
     (stack, moves)
 }
 
+// Perform the shuffling process described by the `moves` vector, and return the final state of the
+// stacks.
+fn shuffle(stack: &mut Stack, moves: &[Move]) {
+    for m in moves {
+        let Move { qty, src, dst } = *m;
+        for _ in 0..qty {
+            let c = stack[src].pop().unwrap();
+            stack[dst].push(c);
+        }
+    }
+}
+
 fn main() {
-    let (stack, moves) = parse_input("data/input.txt");
-    println!("Stack length: {}", stack.len());
-    println!("Number of moves: {}", moves.len());
+    let (mut stack, moves) = parse_input("data/input.txt");
+    shuffle(&mut stack, &moves);
+    for s in stack {
+        print!("{}", s.last().unwrap());
+    }
+    println!();
 }
 
 // Unit tests
@@ -100,7 +119,16 @@ mod tests {
         assert_eq!(stack[2][0], 'P');
 
         assert_eq!(moves[0].qty, 1);
-        assert_eq!(moves[1].src, 1);
-        assert_eq!(moves[3].dst, 2);
+        assert_eq!(moves[1].src, 0);
+        assert_eq!(moves[3].dst, 1);
+    }
+
+    #[test]
+    fn test_shuffle() {
+        let (mut stack, moves) = parse_input("data/test.txt");
+        shuffle(&mut stack, &moves);
+        assert_eq!(stack[0][0], 'C');
+        assert_eq!(stack[1][0], 'M');
+        assert_eq!(stack[2][3], 'Z');
     }
 }
