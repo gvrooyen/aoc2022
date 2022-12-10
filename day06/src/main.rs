@@ -1,4 +1,4 @@
-// Advent of Code 2022 - Day 5
+// Advent of Code 2022 - Day 6
 // Find start-of packet markers in a stream of characters.
 
 use std::collections::{HashSet, VecDeque};
