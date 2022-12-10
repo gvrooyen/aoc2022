@@ -10,6 +10,7 @@ enum NodeType {
     File,
 }
 
+#[derive(Debug, PartialEq)]
 enum ModeType {
     Command,
     Ls,
@@ -41,11 +42,24 @@ struct Context {
 
 impl Context {
     fn new() -> Context {
-        Context {
+        let mut c = Context {
             nodes: HashMap::new(),
             pwd: String::from("/"),
             mode: ModeType::Command,
-        }
+        };
+        c.nodes.insert(String::from("/"), Node::root());
+
+        c
+    }
+
+    fn add_node(&mut self, node_type: NodeType, name: &str, size: u32) {
+        let node = Node {
+            size,
+            node_type,
+            parent: Some((*self.pwd).to_string()),
+            children: HashMap::new(),
+        };
+        self.nodes.insert(String::from(name), node);
     }
 }
 
@@ -56,13 +70,26 @@ fn parse_line(context: &mut Context, line: &str) {
             Some("cd") => {
                 // Change directory.
                 context.pwd = w.next().unwrap().to_string();
+                context.mode = ModeType::Command;
             }
-            Some("ls") => {}
+            Some("ls") => {
+                // List directory.
+                context.mode = ModeType::Ls;
+            }
             Some(unknown) => {}
             None => {}
         },
-        Some("dir") => {}
-        Some(size) => {}
+        Some("dir") => {
+            assert_eq!(context.mode, ModeType::Ls);
+            let dir = w.next().unwrap();
+            context.add_node(NodeType::Dir, dir, 0);
+        }
+        Some(size) => {
+            assert_eq!(context.mode, ModeType::Ls);
+            let size = size.parse::<u32>().unwrap();
+            let file = w.next().unwrap();
+            context.add_node(NodeType::File, file, size);
+        }
         None => {}
     }
 }
@@ -81,7 +108,8 @@ fn parse_input(filename: &str) -> Context {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let context = parse_input("data/input.txt");
+    println!("{:?}", context.pwd);
 }
 
 #[cfg(test)]
@@ -91,10 +119,25 @@ mod tests {
     #[test]
     fn test_parse_line() {
         let mut context = Context::new();
+        assert_eq!(context.pwd, "/");
+        assert_eq!(context.mode, ModeType::Command);
+        assert_eq!(context.nodes.len(), 1);
+        assert_eq!(context.nodes.contains_key("/"), true);
         parse_line(&mut context, "$ cd /");
         assert_eq!(context.pwd, "/");
         parse_line(&mut context, "$ ls");
         parse_line(&mut context, "14848514 b.txt");
         assert_eq!(context.nodes["b.txt"].size, 14848514);
+        parse_line(&mut context, "8504156 c.dat");
+        assert_eq!(context.nodes["c.dat"].size, 8504156);
+        parse_line(&mut context, "dir d");
+        assert_eq!(context.nodes["d"].size, 0);
+        parse_line(&mut context, "$ cd a");
+        assert_eq!(context.pwd, "a");
+        parse_line(&mut context, "$ cd ..");
+        assert_eq!(context.pwd, "/");
     }
+
+    #[test]
+    fn test_parse_input() {}
 }
