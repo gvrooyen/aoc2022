@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+#[derive(Debug, PartialEq)]
 enum NodeType {
     Dir,
     File,
@@ -16,11 +17,12 @@ enum ModeType {
     Ls,
 }
 
+#[derive(Debug, PartialEq)]
 struct Node {
     size: u32,
     node_type: NodeType,
     parent: Option<String>,
-    children: HashMap<String, Node>,
+    children: Vec<String>,
 }
 
 impl Node {
@@ -29,7 +31,7 @@ impl Node {
             size: 0,
             node_type: NodeType::Dir,
             parent: None,
-            children: HashMap::new(),
+            children: Vec::new(),
         }
     }
 }
@@ -57,9 +59,27 @@ impl Context {
             size,
             node_type,
             parent: Some((*self.pwd).to_string()),
-            children: HashMap::new(),
+            children: Vec::new(),
         };
         self.nodes.insert(String::from(name), node);
+        let parent_node = self.nodes.get_mut(&self.pwd).unwrap();
+        parent_node.children.push(String::from(name));
+    }
+
+    fn parent(&mut self) -> Option<String> {
+        self.nodes.get(&self.pwd).unwrap().parent.clone()
+    }
+
+    // Caculate the total size of a node, by adding its own size to the size of its children and
+    // theirs, recursively.
+    fn node_size(&self, name: &str) -> u32 {
+        let node = self.nodes.get(name).unwrap();
+        let mut size = node.size;
+        println!("{:?}", node.children);
+        for child in &node.children {
+            size += self.node_size(child.as_str());
+        }
+        size
     }
 
     fn parse_line(&mut self, line: &str) {
@@ -68,15 +88,23 @@ impl Context {
             Some("$") => match w.next() {
                 Some("cd") => {
                     // Change directory.
-                    self.pwd = w.next().unwrap().to_string();
+                    match w.next() {
+                        Some("..") => self.pwd = self.parent().unwrap(),
+                        Some(name) => self.pwd = name.to_string(),
+                        None => panic!("cd: missing operand"),
+                    }
                     self.mode = ModeType::Command;
                 }
                 Some("ls") => {
                     // List directory.
                     self.mode = ModeType::Ls;
                 }
-                Some(unknown) => {}
-                None => {}
+                Some(unknown) => {
+                    !panic!("Unknown command: {}", unknown);
+                }
+                None => {
+                    !panic!("Empty command");
+                }
             },
             Some("dir") => {
                 assert_eq!(self.mode, ModeType::Ls);
@@ -126,6 +154,8 @@ mod tests {
         context.parse_line("$ cd /");
         assert_eq!(context.pwd, "/");
         context.parse_line("$ ls");
+        context.parse_line("dir a");
+        assert_eq!(context.nodes["a"].size, 0);
         context.parse_line("14848514 b.txt");
         assert_eq!(context.nodes["b.txt"].size, 14848514);
         context.parse_line("8504156 c.dat");
@@ -134,10 +164,15 @@ mod tests {
         assert_eq!(context.nodes["d"].size, 0);
         context.parse_line("$ cd a");
         assert_eq!(context.pwd, "a");
+        assert_eq!(context.nodes["a"].parent, Some("/".to_string()));
         context.parse_line("$ cd ..");
         assert_eq!(context.pwd, "/");
     }
 
     #[test]
-    fn test_parse_input() {}
+    fn test_parse_input() {
+        let context = parse_input("data/test.txt");
+        println!("{:?}", context.nodes);
+        assert_eq!(context.node_size("e"), 584);
+    }
 }
