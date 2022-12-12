@@ -112,7 +112,7 @@ impl Context {
                     match w.next() {
                         Some("..") => self.pwd = self.parent().unwrap(),
                         Some("/") => self.pwd = String::from("/"),
-                        Some(name) => self.pwd = format!("{}/{}", self.pwd, name.to_string()),
+                        Some(name) => self.pwd = format!("{}/{}", self.pwd, name),
                         None => panic!("cd: missing operand"),
                     }
                     self.mode = ModeType::Command;
@@ -122,10 +122,10 @@ impl Context {
                     self.mode = ModeType::Ls;
                 }
                 Some(unknown) => {
-                    !panic!("Unknown command: {}", unknown);
+                    panic!("Unknown command: {}", unknown);
                 }
                 None => {
-                    !panic!("Empty command");
+                    panic!("Empty command");
                 }
             },
             Some("dir") => {
@@ -140,7 +140,7 @@ impl Context {
                 self.add_node(NodeType::File, file, size);
             }
             None => {
-                !panic!("Unknown file type");
+                panic!("Unknown file type");
             }
         }
     }
