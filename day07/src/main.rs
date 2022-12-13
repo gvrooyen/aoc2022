@@ -83,7 +83,6 @@ impl Context {
     // Caculate the total size of a node, by adding its own size to the size of its children and
     // theirs, recursively.
     fn node_size(&self, pwd: &str) -> u32 {
-        println!("node_size: {}", pwd);
         let node = self.nodes.get(pwd).unwrap();
         let mut size = node.size;
         for child in &node.children {
@@ -101,6 +100,21 @@ impl Context {
             }
         }
         total
+    }
+
+    // Find the smallest directory that, if deleted, would free up enough space to reach the
+    // specified threshold. Return the size of that directory.
+    fn smallest_dir(&self, capacity: u32, minimum: u32) -> u32 {
+        let free_space = capacity - self.node_size("/");
+        let shortfall = minimum - free_space;
+        let mut smallest = u32::MAX;
+        for (name, node) in &self.nodes {
+            let ns = self.node_size(name.as_str());
+            if node.node_type == NodeType::Dir && ns > shortfall && ns < smallest {
+                smallest = self.node_size(name.as_str());
+            }
+        }
+        smallest
     }
 
     fn parse_line(&mut self, line: &str) {
@@ -162,6 +176,7 @@ fn parse_input(filename: &str) -> Context {
 fn main() {
     let context = parse_input("data/input.txt");
     println!("{:?}", context.total_size(100000));
+    println!("{:?}", context.smallest_dir(70000000, 30000000));
 }
 
 #[cfg(test)]
@@ -206,5 +221,11 @@ mod tests {
     fn test_total_size() {
         let context = parse_input("data/test.txt");
         assert_eq!(context.total_size(100000), 95437);
+    }
+
+    #[test]
+    fn test_smallest_dir() {
+        let context = parse_input("data/test.txt");
+        assert_eq!(context.smallest_dir(70000000, 30000000), 24933642);
     }
 }
