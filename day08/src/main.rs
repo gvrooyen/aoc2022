@@ -41,10 +41,21 @@ fn scan_line(
     maxima
 }
 
-fn find_highest(matrix: &[Vec<u32>]) -> HashSet<(usize, usize)> {
-    let mut highest = HashSet::new();
+fn find_maxima(matrix: &[Vec<u32>]) -> HashSet<(usize, usize)> {
+    let cols = matrix[0].len();
+    let rows = matrix.len();
+    let mut maxima = HashSet::new();
 
-    highest
+    for row in 0..rows {
+        maxima.extend(scan_line(matrix, row, 0, (0, 1)));
+        maxima.extend(scan_line(matrix, row, cols - 1, (0, -1)));
+    }
+    for col in 0..cols {
+        maxima.extend(scan_line(matrix, 0, col, (1, 0)));
+        maxima.extend(scan_line(matrix, rows - 1, col, (-1, 0)));
+    }
+
+    maxima
 }
 
 fn parse_input(filename: &str) -> Vec<Vec<u32>> {
@@ -61,7 +72,9 @@ fn parse_input(filename: &str) -> Vec<Vec<u32>> {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let matrix = parse_input("data/input.txt");
+    let maxima = find_maxima(&matrix);
+    println!("Number of maxima: {}", maxima.len());
 }
 
 #[cfg(test)]
@@ -71,24 +84,36 @@ mod tests {
     #[test]
     fn test_scan_line() {
         let matrix = parse_input("data/test.txt");
-        let mut maxima = scan_line(&matrix, 0, 0, (0, 1));
+        let maxima = scan_line(&matrix, 0, 0, (0, 1));
         assert_eq!(maxima.len(), 2);
         assert!(maxima.contains(&(0, 0)));
         assert!(maxima.contains(&(0, 3)));
+        let maxima = scan_line(&matrix, 0, 1, (1, 0));
+        assert_eq!(maxima.len(), 2);
+        assert!(maxima.contains(&(0, 1)));
+        assert!(maxima.contains(&(1, 1)));
+        let maxima = scan_line(&matrix, 3, 4, (0, -1));
+        assert_eq!(maxima.len(), 1);
+        assert!(maxima.contains(&(3, 4)));
+        let maxima = scan_line(&matrix, 4, 2, (-1, 0));
+        assert_eq!(maxima.len(), 2);
+        assert!(maxima.contains(&(4, 2)));
+        assert!(maxima.contains(&(3, 2)));
     }
 
     #[test]
     fn test_find_highest() {
         let matrix = parse_input("data/test.txt");
-        let highest = find_highest(&matrix);
-        assert!(highest.contains(&(1, 1)));
-        assert!(highest.contains(&(1, 2)));
-        assert!(!highest.contains(&(1, 3)));
-        assert!(highest.contains(&(2, 1)));
-        assert!(!highest.contains(&(2, 2)));
-        assert!(highest.contains(&(2, 3)));
-        assert!(highest.contains(&(3, 2)));
-        assert!(!highest.contains(&(3, 1)));
-        assert!(!highest.contains(&(3, 3)));
+        let maxima = find_maxima(&matrix);
+        assert!(maxima.contains(&(1, 1)));
+        assert!(maxima.contains(&(1, 2)));
+        assert!(!maxima.contains(&(1, 3)));
+        assert!(maxima.contains(&(2, 1)));
+        assert!(!maxima.contains(&(2, 2)));
+        assert!(maxima.contains(&(2, 3)));
+        assert!(maxima.contains(&(3, 2)));
+        assert!(!maxima.contains(&(3, 1)));
+        assert!(!maxima.contains(&(3, 3)));
+        assert_eq!(maxima.len(), 21);
     }
 }
