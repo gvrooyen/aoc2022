@@ -10,6 +10,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use take_until::TakeUntilExt;
 
 fn scan_line(
     matrix: &[Vec<u32>],
@@ -56,6 +57,38 @@ fn find_maxima(matrix: &[Vec<u32>]) -> HashSet<(usize, usize)> {
     }
 
     maxima
+}
+
+fn tree_score(matrix: &[Vec<u32>], row: usize, col: usize) -> u32 {
+    let height = matrix[row][col];
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    let t = (0..row)
+        .rev()
+        .take_until(|&r| matrix[r][col] >= height)
+        .inspect(|&r| println!("Up: {} {}", r, col))
+        .count();
+
+    let b = (row + 1..rows)
+        .take_until(|&r| matrix[r][col] >= height)
+        .inspect(|&r| println!("Down: {} {}", r, col))
+        .count();
+
+    let l = (0..col)
+        .rev()
+        .take_until(|&c| matrix[row][c] >= height)
+        .inspect(|&c| println!("Left: {} {}", row, c))
+        .count();
+
+    let r = (col + 1..cols)
+        .take_until(|&c| matrix[row][c] >= height)
+        .inspect(|&c| println!("Right: {} {}", row, c))
+        .count();
+
+    println!("For ({},{}): t={} b={} l={} r={}", row, col, t, b, l, r);
+
+    (t * b * l * r) as u32
 }
 
 fn parse_input(filename: &str) -> Vec<Vec<u32>> {
@@ -115,5 +148,12 @@ mod tests {
         assert!(!maxima.contains(&(3, 1)));
         assert!(!maxima.contains(&(3, 3)));
         assert_eq!(maxima.len(), 21);
+    }
+
+    #[test]
+    fn test_tree_score() {
+        let matrix = parse_input("data/test.txt");
+        assert_eq!(tree_score(&matrix, 1, 2), 4);
+        assert_eq!(tree_score(&matrix, 3, 2), 8);
     }
 }
