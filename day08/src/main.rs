@@ -67,26 +67,20 @@ fn tree_score(matrix: &[Vec<u32>], row: usize, col: usize) -> u32 {
     let t = (0..row)
         .rev()
         .take_until(|&r| matrix[r][col] >= height)
-        .inspect(|&r| println!("Up: {} {}", r, col))
         .count();
 
     let b = (row + 1..rows)
         .take_until(|&r| matrix[r][col] >= height)
-        .inspect(|&r| println!("Down: {} {}", r, col))
         .count();
 
     let l = (0..col)
         .rev()
         .take_until(|&c| matrix[row][c] >= height)
-        .inspect(|&c| println!("Left: {} {}", row, c))
         .count();
 
     let r = (col + 1..cols)
         .take_until(|&c| matrix[row][c] >= height)
-        .inspect(|&c| println!("Right: {} {}", row, c))
         .count();
-
-    println!("For ({},{}): t={} b={} l={} r={}", row, col, t, b, l, r);
 
     (t * b * l * r) as u32
 }
@@ -108,6 +102,14 @@ fn main() {
     let matrix = parse_input("data/input.txt");
     let maxima = find_maxima(&matrix);
     println!("Number of maxima: {}", maxima.len());
+
+    // Find the score of the tree in the maxima list that has the highest score.
+    let max_score = maxima
+        .iter()
+        .map(|&(r, c)| tree_score(&matrix, r, c))
+        .max()
+        .unwrap();
+    println!("Max score: {}", max_score);
 }
 
 #[cfg(test)]
