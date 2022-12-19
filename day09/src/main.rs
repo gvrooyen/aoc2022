@@ -21,64 +21,62 @@ impl State {
         s.tail_visits.insert((0, 0));
         s
     }
+    fn pull_tail(&mut self) {
+        let dx = self.head.0 - self.tail.0;
+        let dy = self.head.1 - self.tail.1;
+
+        // If the tail touches the head, no processing is needed.
+        if (dx.abs() <= 1) && (dy.abs() <= 1) {
+            return;
+        }
+
+        // We have eight cases to handle: the four quadrants in which the tail can be, and the four
+        // axes. We start with the head directly north of the tail, and cover the cases clockwise.
+        if (dx == 0) && (dy > 0) {
+            self.tail.1 += 1;
+        } else if (dx > 0) && (dy > 0) {
+            self.tail.0 += 1;
+            self.tail.1 += 1;
+        } else if (dx > 0) && (dy == 0) {
+            self.tail.0 += 1;
+        } else if (dx > 0) && (dy < 0) {
+            self.tail.0 += 1;
+            self.tail.1 -= 1;
+        } else if (dx == 0) && (dy < 0) {
+            self.tail.1 -= 1;
+        } else if (dx < 0) && (dy < 0) {
+            self.tail.0 -= 1;
+            self.tail.1 -= 1;
+        } else if (dx < 0) && (dy == 0) {
+            self.tail.0 -= 1;
+        } else if (dx < 0) && (dy > 0) {
+            self.tail.0 -= 1;
+            self.tail.1 += 1;
+        } else {
+            // The tail is below the head; do nothing.
+        }
+    }
 
     fn step(&mut self, dir: char) {
         let (x, y) = self.head;
-        let (new_head, new_tail) = match dir {
+        match dir {
             'U' => {
-                let new_head = (x, y + 1);
-                let mut new_tail = self.tail;
-                if (new_head.1 - new_tail.1) > 1 {
-                    new_tail = match new_head.0 {
-                        x if x == self.tail.0 => (self.tail.0, self.tail.1 + 1),
-                        x if x > self.tail.0 => (self.tail.0 + 1, self.tail.1 + 1),
-                        _ => (self.tail.0 - 1, self.tail.1 + 1),
-                    };
-                }
-                (new_head, new_tail)
+                self.head = (x, y + 1);
             }
             'D' => {
-                let new_head = (x, y - 1);
-                let mut new_tail = self.tail;
-                if (new_tail.1 - new_head.1) > 1 {
-                    new_tail = match new_head.0 {
-                        x if x == self.tail.0 => (self.tail.0, self.tail.1 - 1),
-                        x if x > self.tail.0 => (self.tail.0 + 1, self.tail.1 - 1),
-                        _ => (self.tail.0 - 1, self.tail.1 - 1),
-                    };
-                }
-                (new_head, new_tail)
+                self.head = (x, y - 1);
             }
             'R' => {
-                let new_head = (x + 1, y);
-                let mut new_tail = self.tail;
-                if (new_head.0 - new_tail.0) > 1 {
-                    new_tail = match new_head.1 {
-                        y if y == self.tail.1 => (self.tail.0 + 1, self.tail.1),
-                        y if y > self.tail.1 => (self.tail.0 + 1, self.tail.1 + 1),
-                        _ => (self.tail.0 + 1, self.tail.1 - 1),
-                    };
-                }
-                (new_head, new_tail)
+                self.head = (x + 1, y);
             }
             'L' => {
-                let new_head = (x - 1, y);
-                let mut new_tail = self.tail;
-                if (new_tail.0 - new_head.0) > 1 {
-                    new_tail = match new_head.1 {
-                        y if y == self.tail.1 => (self.tail.0 - 1, self.tail.1),
-                        y if y > self.tail.1 => (self.tail.0 - 1, self.tail.1 + 1),
-                        _ => (self.tail.0 - 1, self.tail.1 - 1),
-                    };
-                }
-                (new_head, new_tail)
+                self.head = (x - 1, y);
             }
             _ => panic!("Invalid direction"),
         };
 
-        self.head = new_head;
-        self.tail = new_tail;
-        self.tail_visits.insert(new_tail);
+        self.pull_tail();
+        self.tail_visits.insert(self.tail);
     }
 
     fn nstep(&mut self, n: usize, dir: char) {
@@ -123,7 +121,12 @@ mod tests {
         state.step('R');
         assert_eq!(state.head, (2, 0));
         assert_eq!(state.tail, (1, 0));
-        state.nstep(2, 'R');
+        state.step('R');
+        assert_eq!(state.head, (3, 0));
+        assert_eq!(state.tail, (2, 0));
+        state.step('R');
+        assert_eq!(state.head, (4, 0));
+        assert_eq!(state.tail, (3, 0));
         state.step('U');
         assert_eq!(state.head, (4, 1));
         assert_eq!(state.tail, (3, 0));
