@@ -41,13 +41,11 @@ impl State {
                 let new_head = (x, y - 1);
                 let mut new_tail = self.tail;
                 if (new_tail.1 - new_head.1) > 1 {
-                    if new_head.0 == self.tail.0 {
-                        new_tail = (self.tail.0, self.tail.1 - 1);
-                    } else if new_head.0 > self.tail.0 {
-                        new_tail = (self.tail.0 + 1, self.tail.1 - 1);
-                    } else {
-                        new_tail = (self.tail.0 - 1, self.tail.1 - 1);
-                    }
+                    new_tail = match new_head.0 {
+                        x if x == self.tail.0 => (self.tail.0, self.tail.1 - 1),
+                        x if x > self.tail.0 => (self.tail.0 + 1, self.tail.1 - 1),
+                        _ => (self.tail.0 - 1, self.tail.1 - 1),
+                    };
                 }
                 (new_head, new_tail)
             }
@@ -55,13 +53,11 @@ impl State {
                 let new_head = (x + 1, y);
                 let mut new_tail = self.tail;
                 if (new_head.0 - new_tail.0) > 1 {
-                    if new_head.1 == self.tail.1 {
-                        new_tail = (self.tail.0 + 1, self.tail.1);
-                    } else if new_head.1 > self.tail.1 {
-                        new_tail = (self.tail.0 + 1, self.tail.1 + 1);
-                    } else {
-                        new_tail = (self.tail.0 + 1, self.tail.1 - 1);
-                    }
+                    new_tail = match new_head.1 {
+                        y if y == self.tail.1 => (self.tail.0 + 1, self.tail.1),
+                        y if y > self.tail.1 => (self.tail.0 + 1, self.tail.1 + 1),
+                        _ => (self.tail.0 + 1, self.tail.1 - 1),
+                    };
                 }
                 (new_head, new_tail)
             }
@@ -69,13 +65,11 @@ impl State {
                 let new_head = (x - 1, y);
                 let mut new_tail = self.tail;
                 if (new_tail.0 - new_head.0) > 1 {
-                    if new_head.1 == self.tail.1 {
-                        new_tail = (self.tail.0 - 1, self.tail.1);
-                    } else if new_head.1 > self.tail.1 {
-                        new_tail = (self.tail.0 - 1, self.tail.1 + 1);
-                    } else {
-                        new_tail = (self.tail.0 - 1, self.tail.1 - 1);
-                    }
+                    new_tail = match new_head.1 {
+                        y if y == self.tail.1 => (self.tail.0 - 1, self.tail.1),
+                        y if y > self.tail.1 => (self.tail.0 - 1, self.tail.1 + 1),
+                        _ => (self.tail.0 - 1, self.tail.1 - 1),
+                    };
                 }
                 (new_head, new_tail)
             }
