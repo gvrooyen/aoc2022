@@ -2,6 +2,8 @@
 // A pet on a leash in NetHack
 
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
 struct State {
     head: (i32, i32),
@@ -82,6 +84,7 @@ impl State {
 
         self.head = new_head;
         self.tail = new_tail;
+        self.tail_visits.insert(new_tail);
     }
 
     fn nstep(&mut self, n: usize, dir: char) {
@@ -89,10 +92,26 @@ impl State {
             self.step(dir);
         }
     }
+
+    fn process(&mut self, filename: &str) {
+        let reader = BufReader::new(File::open(filename).expect("Could not open file"));
+        let lines = reader.lines();
+
+        // For each line, read a direction character and the number of steps to take.
+        for line in lines {
+            let l = line.unwrap();
+            let mut c = l.chars();
+            let dir = c.next().unwrap();
+            let n = c.skip(1).collect::<String>().parse::<usize>().unwrap();
+            self.nstep(n, dir);
+        }
+    }
 }
 
 fn main() {
-    println!("Hello, world!");
+    let mut state = State::new();
+    state.process("data/input.txt");
+    println!("Tail visits: {}", state.tail_visits.len());
 }
 
 #[cfg(test)]
@@ -100,7 +119,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
+    fn test_step() {
         let mut state = State::new();
         assert_eq!(state.head, (0, 0));
         assert_eq!(state.tail, (0, 0));
@@ -144,5 +163,12 @@ mod tests {
         state.step('R');
         assert_eq!(state.head, (2, 2));
         assert_eq!(state.tail, (1, 2));
+    }
+
+    #[test]
+    fn test_process() {
+        let mut state = State::new();
+        state.process("data/test.txt");
+        assert_eq!(state.tail_visits.len(), 13);
     }
 }
