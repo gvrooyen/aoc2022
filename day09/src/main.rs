@@ -115,14 +115,11 @@ impl NKnots {
 
     fn step(&mut self, dir: char) {
         self.knots[0].step(dir);
-        println!("\nStep {}", dir);
-        println!("head: {:?}", self.knots[0].head);
         for k in 1..self.knots.len() {
             self.knots[k].head = self.knots[k - 1].tail;
             self.knots[k].pull_tail();
             println!("knot {}: {:?}", k, self.knots[k].head);
         }
-        println!("tail: {:?}", self.knots[self.knots.len() - 1].tail);
     }
 
     fn nstep(&mut self, n: usize, dir: char) {
@@ -151,7 +148,9 @@ fn main() {
     state.process("data/input.txt");
     println!("Tail visits: {}", state.tail_visits.len());
 
-    let knots = [&State::new(); 10];
+    let mut rope = NKnots::new(10);
+    rope.process("data/input.txt");
+    println!("Rope tail visits: {}", rope.knots[8].tail_visits.len());
 }
 
 #[cfg(test)]
