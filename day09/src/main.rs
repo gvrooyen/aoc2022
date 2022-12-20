@@ -55,6 +55,7 @@ impl State {
         } else {
             // The tail is below the head; do nothing.
         }
+        self.tail_visits.insert(self.tail);
     }
 
     fn step(&mut self, dir: char) {
@@ -76,7 +77,52 @@ impl State {
         };
 
         self.pull_tail();
-        self.tail_visits.insert(self.tail);
+    }
+
+    fn nstep(&mut self, n: usize, dir: char) {
+        for _ in 0..n {
+            self.step(dir);
+        }
+    }
+
+    fn process(&mut self, filename: &str) {
+        let reader = BufReader::new(File::open(filename).expect("Could not open file"));
+        let lines = reader.lines();
+
+        // For each line, read a direction character and the number of steps to take.
+        for line in lines {
+            let l = line.unwrap();
+            let mut c = l.chars();
+            let dir = c.next().unwrap();
+            let n = c.skip(1).collect::<String>().parse::<usize>().unwrap();
+            self.nstep(n, dir);
+        }
+    }
+}
+
+struct NKnots {
+    knots: Vec<State>,
+}
+
+impl NKnots {
+    fn new(n: usize) -> Self {
+        let mut s = NKnots { knots: Vec::new() };
+        for _ in 0..n {
+            s.knots.push(State::new());
+        }
+        s
+    }
+
+    fn step(&mut self, dir: char) {
+        self.knots[0].step(dir);
+        println!("\nStep {}", dir);
+        println!("head: {:?}", self.knots[0].head);
+        for k in 1..self.knots.len() {
+            self.knots[k].head = self.knots[k - 1].tail;
+            self.knots[k].pull_tail();
+            println!("knot {}: {:?}", k, self.knots[k].head);
+        }
+        println!("tail: {:?}", self.knots[self.knots.len() - 1].tail);
     }
 
     fn nstep(&mut self, n: usize, dir: char) {
@@ -104,6 +150,8 @@ fn main() {
     let mut state = State::new();
     state.process("data/input.txt");
     println!("Tail visits: {}", state.tail_visits.len());
+
+    let knots = [&State::new(); 10];
 }
 
 #[cfg(test)]
@@ -163,9 +211,30 @@ mod tests {
     }
 
     #[test]
-    fn test_process() {
+    fn test_process_1() {
         let mut state = State::new();
         state.process("data/test.txt");
         assert_eq!(state.tail_visits.len(), 13);
+    }
+
+    #[test]
+    fn test_nknots() {
+        let mut rope = NKnots::new(10);
+        assert_eq!(rope.knots.len(), 10);
+        assert_eq!(rope.knots[0].head, (0, 0));
+        assert_eq!(rope.knots[0].tail, (0, 0));
+        assert_eq!(rope.knots[9].head, (0, 0));
+        assert_eq!(rope.knots[9].tail, (0, 0));
+        rope.step('R');
+        assert_eq!(rope.knots[0].head, (1, 0));
+        assert_eq!(rope.knots[0].tail, (0, 0));
+        assert_eq!(rope.knots[1].head, (0, 0));
+    }
+
+    #[test]
+    fn test_process_2() {
+        let mut rope = NKnots::new(10);
+        rope.process("data/test2.txt");
+        assert_eq!(rope.knots[8].tail_visits.len(), 36);
     }
 }
