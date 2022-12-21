@@ -118,7 +118,6 @@ impl NKnots {
         for k in 1..self.knots.len() {
             self.knots[k].head = self.knots[k - 1].tail;
             self.knots[k].pull_tail();
-            println!("knot {}: {:?}", k, self.knots[k].head);
         }
     }
 
